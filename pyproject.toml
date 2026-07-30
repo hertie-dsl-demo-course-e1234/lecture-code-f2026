@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mlfdemo"
+version = "0.3.0"
+description = "Teaching helpers for Foundations of Machine Learning (Demo), E1234"
+readme = "README.md"
+requires-python = ">=3.10"
+# No runtime dependencies ON PURPOSE: `pip install -e .` must work in any student
+# environment, and a partially released package must still import. matplotlib is imported
+# lazily inside mlfdemo.plotting, and declared as an optional extra below.
+dependencies = []
+
+[project.optional-dependencies]
+plots = ["matplotlib>=3.7"]
+
+[tool.setuptools]
+packages = ["mlfdemo"]
