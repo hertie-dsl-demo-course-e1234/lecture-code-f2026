@@ -1,0 +1,92 @@
+name: Release assignment
+
+# Generates one private repo per onboarded student from the chosen assignment template
+# repo (native template-generate). The assignment dropdown lists the course org's
+# assignment-* template repos; refresh repopulates it.
+
+on:
+  workflow_dispatch:
+    inputs:
+      cohort_org:
+        description: "Target cohort org"
+        required: true
+        type: choice
+        default: "hertie-dsl-demo-f2027"
+        options:
+          - hertie-dsl-demo-f2025
+          - hertie-dsl-demo-f2026
+          - hertie-dsl-demo-f2027
+      course_source_repo:
+        description: "Course-org repo to hand out from"
+        required: true
+        type: choice
+        default: "assignment-3-project-f2026"
+        options:
+          - assignment-1-f2026
+          - assignment-2-f2026
+          - assignment-3-project-f2026
+      include_solution:
+        description: "Also push the solution (from the template's solution branch) into each student repo"
+        type: boolean
+        default: false
+      type:
+        description: "individual (one repo per student) or group (one per team from teams.csv). auto = whatever schedule.yml / the template's grading.yml declare (default: individual)"
+        required: true
+        type: choice
+        default: auto
+        options:
+          - auto
+          - individual
+          - group
+      dry_run:
+        description: "Preview only - list the repos that WOULD be created, don't create them"
+        type: boolean
+        default: false
+
+jobs:
+  check-team:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify the user may run actions for THIS repo
+        env:
+          GH_TOKEN: ${{ secrets.DSL_BOT_TOKEN }}
+          ACTOR: ${{ github.actor }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Faculty & instructors have write+ on the course repos; students never do (and triggering a
+          # workflow_dispatch already requires write), so repo permission is the gate.
+          perm=$(gh api "repos/$REPO/collaborators/$ACTOR/permission" --jq '.permission' 2>/tmp/gherr || true)
+          case "$perm" in admin|write|maintain) exit 0 ;; esac
+          echo "::error::@$ACTOR lacks write on $REPO (permission='$perm'). gh api said:"
+          cat /tmp/gherr || true
+          exit 1
+
+  provision:
+    needs: check-team
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: hertie-data-science-lab/dsl-teaching-toolkit
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Provision
+        env:
+          GH_TOKEN: ${{ secrets.DSL_BOT_TOKEN }}
+          MASTER_ORG: ${{ github.repository_owner }}
+          COHORT_ORG: ${{ inputs.cohort_org }}
+          COURSE_SOURCE_REPO: ${{ inputs.course_source_repo }}
+          INC_SOL: ${{ inputs.include_solution }}
+          TYPE: ${{ inputs.type }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          gh auth setup-git
+          args=(--master-org "$MASTER_ORG" --course-source-repo "$COURSE_SOURCE_REPO" --cohort-org "$COHORT_ORG")
+          [ "$INC_SOL" = "true" ] && args+=(--solution)
+          args+=(--type "$TYPE")
+          [ "$DRY_RUN" = "true" ] && args+=(--dry-run)
+          python3 -m dsl_course.assign "${args[@]}"
