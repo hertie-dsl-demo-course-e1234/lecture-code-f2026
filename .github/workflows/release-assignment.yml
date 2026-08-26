@@ -11,11 +11,10 @@ on:
         description: "Target cohort org"
         required: true
         type: choice
-        default: "hertie-dsl-demo-f2027"
+        default: "hertie-dsl-demo-f2026"
         options:
           - hertie-dsl-demo-f2025
           - hertie-dsl-demo-f2026
-          - hertie-dsl-demo-f2027
       course_source_repo:
         description: "Course-org repo to hand out from"
         required: true

@@ -21,11 +21,10 @@ on:
         description: "3. target cohort org"
         required: true
         type: choice
-        default: "hertie-dsl-demo-f2027"
+        default: "hertie-dsl-demo-f2026"
         options:
           - hertie-dsl-demo-f2025
           - hertie-dsl-demo-f2026
-          - hertie-dsl-demo-f2027
       cohort_dest_repo:
         description: "4. repo to release to in the cohort org; created if missing"
         required: true
