@@ -31,7 +31,7 @@ on:
         type: boolean
         default: false
       type:
-        description: "individual (one repo per student) or group (one per team from teams.csv). auto = whatever schedule.yml / the template's grading_config.yml declare (default: individual)"
+        description: "individual (one repo per student) or group (one per team from teams.csv). auto = whatever the template's grading_config.yml declares (default: individual)"
         required: true
         type: choice
         default: auto
@@ -39,6 +39,10 @@ on:
           - auto
           - individual
           - group
+      slug:
+        description: "Only if TWO schedule.yml assignments hand out from this template: which one (the schedule key). Leave empty otherwise"
+        required: false
+        default: ""
       dry_run:
         description: "Preview only - list the repos that WOULD be created, don't create them"
         type: boolean
@@ -91,11 +95,13 @@ jobs:
           COURSE_SOURCE_REPO: ${{ inputs.course_source_repo }}
           INC_SOL: ${{ inputs.include_solution }}
           TYPE: ${{ inputs.type }}
+          SLUG: ${{ inputs.slug }}
           DRY_RUN: ${{ inputs.dry_run }}
         run: |
           gh auth setup-git
           args=(--master-org "$MASTER_ORG" --course-source-repo "$COURSE_SOURCE_REPO" --cohort-org "$COHORT_ORG")
           [ "$INC_SOL" = "true" ] && args+=(--solution)
           args+=(--type "$TYPE")
+          [ -n "$SLUG" ] && args+=(--slug "$SLUG")
           [ "$DRY_RUN" = "true" ] && args+=(--dry-run)
           python3 -m dsl_course.assign "${args[@]}"
