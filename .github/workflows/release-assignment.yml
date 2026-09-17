@@ -13,12 +13,13 @@ on:
         description: "1. Course-org repo to hand out from"
         required: true
         type: choice
-        default: "assignment-4-f2026"
+        default: "assignment-5-f2026"
         options:
           - assignment-1-f2026
           - assignment-2-f2026
           - assignment-3-project-f2026
           - assignment-4-f2026
+          - assignment-5-f2026
       cohort_org:
         description: "2. Target cohort org"
         required: true
