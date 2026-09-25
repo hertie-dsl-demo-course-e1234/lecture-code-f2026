@@ -3,11 +3,11 @@
 name: Release materials
 
 # Run from a course content repo: course_source_repo is pre-filled with THIS repo (editable).
-# Copies the given path(s) into the cohort org. course_source_path and
-# cohort_dest_path are comma-separated parallel lists paired by index - leave
-# cohort_dest_path blank to mirror course_source_path. These are exactly a schedule.yml
+# Copies the given path(s) into the semester org. course_source_path and
+# semester_dest_path are comma-separated parallel lists paired by index - leave
+# semester_dest_path blank to mirror course_source_path. These are exactly a schedule.yml
 # `deploy:` entry's fields.
-# The cohort dropdown is refreshed by the 'Refresh actions' workflow.
+# The semester dropdown is refreshed by the 'Refresh actions' workflow.
 
 on:
   workflow_dispatch:
@@ -19,19 +19,19 @@ on:
       course_source_path:
         description: "2. within-repo folder/file path to copy from (or comma-separated list)"
         required: true
-      cohort_org:
-        description: "3. target cohort org"
+      semester_org:
+        description: "3. target semester org"
         required: true
         type: choice
         default: "hertie-dsl-demo-f2026"
         options:
           - hertie-dsl-demo-f2025
           - hertie-dsl-demo-f2026
-      cohort_dest_repo:
-        description: "4. repo to release to in the cohort org; created if missing"
+      semester_dest_repo:
+        description: "4. repo to release to in the semester org; created if missing"
         default: "materials"
         required: true
-      cohort_dest_path:
+      semester_dest_path:
         description: "5. within-repo destination path (blank mirrors box 2's path(s)); created if missing"
         required: false
 
@@ -85,15 +85,15 @@ jobs:
       - name: Release
         env:
           GH_TOKEN: ${{ secrets.DSL_BOT_TOKEN }}
-          SRC_ORG: ${{ github.repository_owner }}
+          COURSE_ORG: ${{ github.repository_owner }}
           COURSE_SOURCE_REPO: ${{ inputs.course_source_repo }}
-          COHORT_ORG: ${{ inputs.cohort_org }}
+          SEMESTER_ORG: ${{ inputs.semester_org }}
           COURSE_SOURCE_PATH: ${{ inputs.course_source_path }}
-          COHORT_DEST_REPO: ${{ inputs.cohort_dest_repo }}
-          COHORT_DEST_PATH: ${{ inputs.cohort_dest_path }}
+          SEMESTER_DEST_REPO: ${{ inputs.semester_dest_repo }}
+          SEMESTER_DEST_PATH: ${{ inputs.semester_dest_path }}
         run: |
           gh auth setup-git
-          python3 -m dsl_course.deploy --source-org "$SRC_ORG" \
-            --course-source-repo "$COURSE_SOURCE_REPO" --cohort-org "$COHORT_ORG" \
-            --course-source-path "$COURSE_SOURCE_PATH" --cohort-dest-repo "$COHORT_DEST_REPO" \
-            --cohort-dest-path "$COHORT_DEST_PATH"
+          python3 -m dsl_course.deploy --course-org "$COURSE_ORG" \
+            --course-source-repo "$COURSE_SOURCE_REPO" --semester-org "$SEMESTER_ORG" \
+            --course-source-path "$COURSE_SOURCE_PATH" --semester-dest-repo "$SEMESTER_DEST_REPO" \
+            --semester-dest-path "$SEMESTER_DEST_PATH" --no-preview
